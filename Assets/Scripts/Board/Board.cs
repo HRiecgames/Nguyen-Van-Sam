@@ -139,7 +139,7 @@ public class Board
     internal void FillGapsWithNewItems()
     {
 
-        Dictionary<NormalItem.eNormalType, int> itemCount = new Dictionary<NormalItem.eNormalType, int>();
+        Dictionary<NormalItem.eNormalType, int> itemCount = CountItemsOnBoard();
 
 
 
@@ -153,25 +153,52 @@ public class Board
                 // get list item from 4 o
                 HashSet<NormalItem.eNormalType> aroundingItems = GetListItemOf4BoxAround(x, y);
 
-                NormalItem.eNormalType selectedType = NormalItem.eNormalType.TYPE_FIVE;
+                NormalItem.eNormalType selectedType = GetItemMinOnBoardIsValid(itemCount, aroundingItems);
 
 
                 NormalItem item = new NormalItem();
 
-                item.SetType(Utils.GetRandomNormalType());
+                item.SetType(selectedType);
                 item.SetView();
                 item.SetViewRoot(m_root);
 
                 cell.Assign(item);
                 cell.ApplyItemPosition(true);
+
+                itemCount[selectedType]++;
             }
         }
     }
 
-  /*  private NormalItem.eNormalType GetItemMinOnBoardIsValid()
+    private Dictionary<NormalItem.eNormalType, int> CountItemsOnBoard()
     {
 
-    }*/
+        Dictionary<NormalItem.eNormalType, int> count = new Dictionary<NormalItem.eNormalType, int>();
+        foreach(var cell in m_cells)
+        {
+            if (!cell.IsEmpty)
+            {
+                if (cell.Item is NormalItem normalItem)
+                {
+                    NormalItem.eNormalType type = normalItem.ItemType;
+                    if (!count.ContainsKey(type))
+                    {
+                        count[type] = 0;
+                    }
+                    count[type]++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private NormalItem.eNormalType GetItemMinOnBoardIsValid(Dictionary<NormalItem.eNormalType, int> itemCount, HashSet<NormalItem.eNormalType> excludedTypes)
+    {
+        return itemCount.Where(pair => !excludedTypes.Contains(pair.Key))
+            .OrderBy(pair => pair.Value)
+            .First()
+            .Key;
+    }
 
     private HashSet<NormalItem.eNormalType> GetListItemOf4BoxAround(int x, int y)
     {
@@ -183,7 +210,7 @@ public class Board
         {
             int nx = x + directions[i, 0];
             int ny = y + directions[i, 1];
-            if (IsValidPosition(nx, ny) && m_cells[nx, ny].IsEmpty)
+            if (IsValidPosition(nx, ny) && !m_cells[nx, ny].IsEmpty)
             {
                 if (m_cells[nx, ny].Item is NormalItem normalItem)
                 {
