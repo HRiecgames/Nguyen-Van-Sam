@@ -138,12 +138,23 @@ public class Board
 
     internal void FillGapsWithNewItems()
     {
+
+        Dictionary<NormalItem.eNormalType, int> itemCount = new Dictionary<NormalItem.eNormalType, int>();
+
+
+
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
             {
                 Cell cell = m_cells[x, y];
                 if (!cell.IsEmpty) continue;
+
+                // get list item from 4 o
+                HashSet<NormalItem.eNormalType> aroundingItems = GetListItemOf4BoxAround(x, y);
+
+                NormalItem.eNormalType selectedType = NormalItem.eNormalType.TYPE_FIVE;
+
 
                 NormalItem item = new NormalItem();
 
@@ -155,6 +166,39 @@ public class Board
                 cell.ApplyItemPosition(true);
             }
         }
+    }
+
+  /*  private NormalItem.eNormalType GetItemMinOnBoardIsValid()
+    {
+
+    }*/
+
+    private HashSet<NormalItem.eNormalType> GetListItemOf4BoxAround(int x, int y)
+    {
+        HashSet<NormalItem.eNormalType> arounding = new HashSet<NormalItem.eNormalType>();
+
+        int[,] directions = { { 0, 1 }, { 0, -1 }, { 1, 0 }, { -1, 0 } };
+
+        for (int i = 0; i < directions.GetLength(0); i++)
+        {
+            int nx = x + directions[i, 0];
+            int ny = y + directions[i, 1];
+            if (IsValidPosition(nx, ny) && m_cells[nx, ny].IsEmpty)
+            {
+                if (m_cells[nx, ny].Item is NormalItem normalItem)
+                {
+                    arounding.Add(normalItem.ItemType);
+                }
+            }
+        }
+
+        return arounding;
+    }
+
+    // check position
+    private bool IsValidPosition(int x, int y)
+    {
+        return x >= 0 && x < boardSizeX && y >= 0 && y < boardSizeY;
     }
 
     internal void ExplodeAllItems()
